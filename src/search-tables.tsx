@@ -12,6 +12,7 @@ import {
   Clipboard,
   popToRoot,
   useNavigation,
+  open,
 } from "@raycast/api";
 import { useState, useMemo, useCallback } from "react";
 import { getSchema, filterByPlatform, searchTables } from "./schema/loader";
@@ -19,7 +20,7 @@ import {
   OsqueryTable,
   OsqueryColumn,
   Platform,
-  PLATFORM_ICON_FILES,
+  PLATFORM_ICONS,
 } from "./schema/types";
 import {
   TableCategory,
@@ -43,7 +44,7 @@ interface FlatColumn {
 function getPlatformAccessories(platforms: string[]): List.Item.Accessory[] {
   return platforms
     .map((p) => ({
-      icon: PLATFORM_ICON_FILES[p] || undefined,
+      icon: PLATFORM_ICONS[p] || undefined,
       tooltip:
         p === "darwin"
           ? "macOS"
@@ -364,11 +365,15 @@ ${!hasConditions ? `\n⚠️ **Warning:** No WHERE conditions specified. This po
             shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}
           />
           {fleetUrl && (
-            <Action.OpenInBrowser
+            <Action
               title="Open in Fleet"
-              url={`${fleetUrl}/policies/new`}
               icon={Icon.Globe}
               shortcut={{ modifiers: ["cmd"], key: "o" }}
+              onAction={async () => {
+                await Clipboard.copy(policyQuery);
+                await showToast({ style: Toast.Style.Success, title: "Query copied to clipboard" });
+                await open(`${fleetUrl}/policies/new`);
+              }}
             />
           )}
           <Action
@@ -975,7 +980,7 @@ export default function SearchTables() {
                 key={p}
                 title={`${platform === p ? "✓ " : ""}${p === "all" ? "All Platforms" : p === "darwin" ? "macOS" : p === "linux" ? "Linux" : "Windows"}`}
                 value={`platform:${p}`}
-                icon={p !== "all" ? PLATFORM_ICON_FILES[p] : undefined}
+                icon={p !== "all" ? PLATFORM_ICONS[p] : undefined}
               />
             ))}
           </List.Dropdown.Section>

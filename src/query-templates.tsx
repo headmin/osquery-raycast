@@ -1,4 +1,10 @@
-import { Action, ActionPanel, List, getPreferenceValues, Color } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  List,
+  getPreferenceValues,
+  Color,
+} from "@raycast/api";
 import { useState, useMemo } from "react";
 import {
   QUERY_TEMPLATES,
@@ -6,17 +12,26 @@ import {
   QueryTemplate,
   TemplateCategory,
 } from "./data/templates";
-import { Platform, PLATFORM_ICON_FILES } from "./schema/types";
+import { Platform, PLATFORM_ICONS } from "./schema/types";
 
 interface Preferences {
   defaultPlatform: Platform;
 }
 
 function getPlatformAccessories(platforms: string[]): List.Item.Accessory[] {
-  return platforms.map((p) => ({
-    icon: PLATFORM_ICON_FILES[p] || undefined,
-    tooltip: p === "darwin" ? "macOS" : p === "linux" ? "Linux" : p === "windows" ? "Windows" : p,
-  })).filter((a) => a.icon);
+  return platforms
+    .map((p) => ({
+      icon: PLATFORM_ICONS[p] || undefined,
+      tooltip:
+        p === "darwin"
+          ? "macOS"
+          : p === "linux"
+            ? "Linux"
+            : p === "windows"
+              ? "Windows"
+              : p,
+    }))
+    .filter((a) => a.icon);
 }
 
 function TemplateDetail({ template }: { template: QueryTemplate }) {
@@ -24,10 +39,14 @@ function TemplateDetail({ template }: { template: QueryTemplate }) {
 
   const platformColor = (p: string): Color => {
     switch (p) {
-      case "darwin": return Color.Purple;
-      case "linux": return Color.Orange;
-      case "windows": return Color.Blue;
-      default: return Color.SecondaryText;
+      case "darwin":
+        return Color.Purple;
+      case "linux":
+        return Color.Orange;
+      case "windows":
+        return Color.Blue;
+      default:
+        return Color.SecondaryText;
     }
   };
 
@@ -39,16 +58,27 @@ function TemplateDetail({ template }: { template: QueryTemplate }) {
       metadata={
         <List.Item.Detail.Metadata>
           <List.Item.Detail.Metadata.TagList title="Category">
-            <List.Item.Detail.Metadata.TagList.Item text={categoryInfo.label} color={Color.Blue} />
+            <List.Item.Detail.Metadata.TagList.Item
+              text={categoryInfo.label}
+              color={Color.Blue}
+            />
           </List.Item.Detail.Metadata.TagList>
           <List.Item.Detail.Metadata.TagList title="Platforms">
             {template.platforms.map((p) => (
-              <List.Item.Detail.Metadata.TagList.Item key={p} text={p} color={platformColor(p)} />
+              <List.Item.Detail.Metadata.TagList.Item
+                key={p}
+                text={p}
+                color={platformColor(p)}
+              />
             ))}
           </List.Item.Detail.Metadata.TagList>
           <List.Item.Detail.Metadata.TagList title="Tags">
             {template.tags.map((tag) => (
-              <List.Item.Detail.Metadata.TagList.Item key={tag} text={tag} color={Color.Blue} />
+              <List.Item.Detail.Metadata.TagList.Item
+                key={tag}
+                text={tag}
+                color={Color.Blue}
+              />
             ))}
           </List.Item.Detail.Metadata.TagList>
         </List.Item.Detail.Metadata>
@@ -60,7 +90,9 @@ function TemplateDetail({ template }: { template: QueryTemplate }) {
 export default function QueryTemplates() {
   const preferences = getPreferenceValues<Preferences>();
   const [searchText, setSearchText] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState<
+    TemplateCategory | "all"
+  >("all");
   const platform = preferences.defaultPlatform || "darwin";
 
   const filteredTemplates = useMemo(() => {
@@ -84,7 +116,7 @@ export default function QueryTemplates() {
           t.name.toLowerCase().includes(lowerSearch) ||
           t.description.toLowerCase().includes(lowerSearch) ||
           t.tags.some((tag) => tag.toLowerCase().includes(lowerSearch)) ||
-          t.query.toLowerCase().includes(lowerSearch)
+          t.query.toLowerCase().includes(lowerSearch),
       );
     }
 
@@ -112,11 +144,17 @@ export default function QueryTemplates() {
         <List.Dropdown
           tooltip="Filter by Category"
           value={categoryFilter}
-          onChange={(value) => setCategoryFilter(value as TemplateCategory | "all")}
+          onChange={(value) =>
+            setCategoryFilter(value as TemplateCategory | "all")
+          }
         >
           <List.Dropdown.Item title="All Categories" value="all" icon="📋" />
           {Object.entries(TEMPLATE_CATEGORIES).map(([key, info]) => (
-            <List.Dropdown.Item key={key} title={`${info.icon} ${info.label}`} value={key} />
+            <List.Dropdown.Item
+              key={key}
+              title={`${info.icon} ${info.label}`}
+              value={key}
+            />
           ))}
         </List.Dropdown>
       }
@@ -129,9 +167,7 @@ export default function QueryTemplates() {
               <List.Item
                 key={template.id}
                 title={template.name}
-                accessories={[
-                  ...getPlatformAccessories(template.platforms),
-                ]}
+                accessories={[...getPlatformAccessories(template.platforms)]}
                 detail={<TemplateDetail template={template} />}
                 actions={
                   <ActionPanel>

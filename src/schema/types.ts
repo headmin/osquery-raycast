@@ -32,9 +32,9 @@ export const PLATFORM_LABELS: Record<string, string> = {
   all: "All",
 };
 
-// Icon filenames in assets folder
-export const PLATFORM_ICON_FILES: Record<string, string> = {
-  darwin: "apple-icon.png",
-  linux: "linux-icon.png",
-  windows: "windows-icon.svg",
+// Platform icons - light/dark mode support
+export const PLATFORM_ICONS: Record<string, { source: { light: string; dark: string } }> = {
+  darwin: { source: { light: "apple-icon.svg", dark: "apple-icon-dark.svg" } },
+  linux: { source: { light: "linux-icon.svg", dark: "linux-icon-dark.svg" } },
+  windows: { source: { light: "windows-icon.svg", dark: "windows-icon-dark.svg" } },
 };

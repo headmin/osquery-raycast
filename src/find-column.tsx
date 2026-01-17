@@ -13,7 +13,7 @@ import {
 } from "@raycast/api";
 import { useState, useMemo } from "react";
 import { getSchema, filterByPlatform } from "./schema/loader";
-import { OsqueryTable, Platform, PLATFORM_ICON_FILES } from "./schema/types";
+import { OsqueryTable, Platform, PLATFORM_ICONS } from "./schema/types";
 import { CATEGORY_INFO, getTableCategory } from "./schema/categories";
 
 interface Preferences {
@@ -21,10 +21,19 @@ interface Preferences {
 }
 
 function getPlatformAccessories(platforms: string[]): List.Item.Accessory[] {
-  return platforms.map((p) => ({
-    icon: PLATFORM_ICON_FILES[p] || undefined,
-    tooltip: p === "darwin" ? "macOS" : p === "linux" ? "Linux" : p === "windows" ? "Windows" : p,
-  })).filter((a) => a.icon);
+  return platforms
+    .map((p) => ({
+      icon: PLATFORM_ICONS[p] || undefined,
+      tooltip:
+        p === "darwin"
+          ? "macOS"
+          : p === "linux"
+            ? "Linux"
+            : p === "windows"
+              ? "Windows"
+              : p,
+    }))
+    .filter((a) => a.icon);
 }
 
 function getRequiredColumns(table: OsqueryTable): string[] {
@@ -57,7 +66,13 @@ function JoinQueryBuilder({
 
   // Get all required columns from both tables with descriptions
   const requiredColumns = useMemo(() => {
-    const cols: { key: string; table: string; column: string; description: string; type: string }[] = [];
+    const cols: {
+      key: string;
+      table: string;
+      column: string;
+      description: string;
+      type: string;
+    }[] = [];
     const t1Req = getRequiredColumns(table1);
     for (const colName of t1Req) {
       if (colName !== columnName) {
@@ -92,11 +107,17 @@ function JoinQueryBuilder({
   const availableColumns = useMemo(() => {
     const cols: { value: string; title: string }[] = [];
     for (const c of table1.columns.filter((c) => !c.hidden)) {
-      cols.push({ value: `${table1.name}.${c.name}`, title: `${table1.name}.${c.name} (${c.type})` });
+      cols.push({
+        value: `${table1.name}.${c.name}`,
+        title: `${table1.name}.${c.name} (${c.type})`,
+      });
     }
     if (table2) {
       for (const c of table2.columns.filter((c) => !c.hidden)) {
-        cols.push({ value: `${table2.name}.${c.name}`, title: `${table2.name}.${c.name} (${c.type})` });
+        cols.push({
+          value: `${table2.name}.${c.name}`,
+          title: `${table2.name}.${c.name} (${c.type})`,
+        });
       }
     }
     return cols;
@@ -105,7 +126,8 @@ function JoinQueryBuilder({
   const generatedQuery = useMemo(() => {
     if (!table2) return "";
 
-    const selectCols = selectedColumns.length > 0 ? selectedColumns.join(",\n       ") : "*";
+    const selectCols =
+      selectedColumns.length > 0 ? selectedColumns.join(",\n       ") : "*";
 
     let query = `SELECT ${selectCols}\nFROM ${table1.name}\n${joinType} ${table2.name} USING (${columnName})`;
 
@@ -118,15 +140,29 @@ function JoinQueryBuilder({
     }
 
     return query + ";";
-  }, [table1, table2, joinType, columnName, selectedColumns, requiredColumns, whereValues]);
+  }, [
+    table1,
+    table2,
+    joinType,
+    columnName,
+    selectedColumns,
+    requiredColumns,
+    whereValues,
+  ]);
 
   async function handleSubmit() {
     if (!generatedQuery) {
-      await showToast({ style: Toast.Style.Failure, title: "Select a second table" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Select a second table",
+      });
       return;
     }
     await Clipboard.copy(generatedQuery);
-    await showToast({ style: Toast.Style.Success, title: "JOIN query copied!" });
+    await showToast({
+      style: Toast.Style.Success,
+      title: "JOIN query copied!",
+    });
     await popToRoot();
   }
 
@@ -135,7 +171,11 @@ function JoinQueryBuilder({
       navigationTitle={`JOIN on "${columnName}"`}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Copy JOIN Query" onSubmit={handleSubmit} icon={Icon.Clipboard} />
+          <Action.SubmitForm
+            title="Copy JOIN Query"
+            onSubmit={handleSubmit}
+            icon={Icon.Clipboard}
+          />
         </ActionPanel>
       }
     >
@@ -149,45 +189,80 @@ function JoinQueryBuilder({
         />
       )}
 
-      <Form.Dropdown id="joinType" title="Join Type" value={joinType} onChange={setJoinType}>
+      <Form.Dropdown
+        id="joinType"
+        title="Join Type"
+        value={joinType}
+        onChange={setJoinType}
+      >
         <Form.Dropdown.Item title="JOIN (INNER)" value="JOIN" />
         <Form.Dropdown.Item title="LEFT JOIN" value="LEFT JOIN" />
       </Form.Dropdown>
 
-      <Form.Dropdown id="table2" title="Second Table" value={table2Name} onChange={setTable2Name}>
+      <Form.Dropdown
+        id="table2"
+        title="Second Table"
+        value={table2Name}
+        onChange={setTable2Name}
+      >
         {otherTables.map((t) => (
-          <Form.Dropdown.Item key={t.name} title={`${t.name} - ${t.description.slice(0, 40)}...`} value={t.name} />
+          <Form.Dropdown.Item
+            key={t.name}
+            title={`${t.name} - ${t.description.slice(0, 40)}...`}
+            value={t.name}
+          />
         ))}
       </Form.Dropdown>
 
       <Form.Separator />
 
-      <Form.TagPicker id="columns" title="Select Columns" value={selectedColumns} onChange={setSelectedColumns}>
+      <Form.TagPicker
+        id="columns"
+        title="Select Columns"
+        value={selectedColumns}
+        onChange={setSelectedColumns}
+      >
         {availableColumns.map((col) => (
-          <Form.TagPicker.Item key={col.value} title={col.title} value={col.value} />
+          <Form.TagPicker.Item
+            key={col.value}
+            title={col.title}
+            value={col.value}
+          />
         ))}
       </Form.TagPicker>
 
       {requiredColumns.length > 0 && (
         <>
           <Form.Separator />
-          <Form.Description title="Required WHERE Values" text="These columns require values to query" />
+          <Form.Description
+            title="Required WHERE Values"
+            text="These columns require values to query"
+          />
           {requiredColumns.map((rc) => (
             <Form.TextField
               key={rc.key}
               id={rc.key}
               title={rc.column}
-              placeholder={rc.type === "INTEGER" || rc.type === "BIGINT" ? "e.g. 123" : "e.g. /path/to/file"}
+              placeholder={
+                rc.type === "INTEGER" || rc.type === "BIGINT"
+                  ? "e.g. 123"
+                  : "e.g. /path/to/file"
+              }
               info={`${rc.description}${rc.type ? ` (${rc.type})` : ""}`}
               value={whereValues[rc.key] || ""}
-              onChange={(value) => setWhereValues((prev) => ({ ...prev, [rc.key]: value }))}
+              onChange={(value) =>
+                setWhereValues((prev) => ({ ...prev, [rc.key]: value }))
+              }
             />
           ))}
         </>
       )}
 
       <Form.Separator />
-      <Form.Description title="Generated Query" text={generatedQuery || "Select a second table"} />
+      <Form.Description
+        title="Generated Query"
+        text={generatedQuery || "Select a second table"}
+      />
     </Form>
   );
 }
@@ -245,7 +320,10 @@ function MultiTableQueryBuilder({
 
   async function handleSubmit() {
     if (!generatedQuery) {
-      await showToast({ style: Toast.Style.Failure, title: "Select at least one table" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Select at least one table",
+      });
       return;
     }
     await Clipboard.copy(generatedQuery);
@@ -258,7 +336,11 @@ function MultiTableQueryBuilder({
       navigationTitle={`Build Query on "${columnName}"`}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Copy Query" onSubmit={handleSubmit} icon={Icon.Clipboard} />
+          <Action.SubmitForm
+            title="Copy Query"
+            onSubmit={handleSubmit}
+            icon={Icon.Clipboard}
+          />
         </ActionPanel>
       }
     >
@@ -274,14 +356,22 @@ function MultiTableQueryBuilder({
       </Form.TagPicker>
 
       {selectedTables.length > 1 && (
-        <Form.Dropdown id="joinType" title="Join Type" value={joinType} onChange={setJoinType}>
+        <Form.Dropdown
+          id="joinType"
+          title="Join Type"
+          value={joinType}
+          onChange={setJoinType}
+        >
           <Form.Dropdown.Item title="JOIN (INNER)" value="JOIN" />
           <Form.Dropdown.Item title="LEFT JOIN" value="LEFT JOIN" />
         </Form.Dropdown>
       )}
 
       <Form.Separator />
-      <Form.Description title="Query Preview" text={generatedQuery || "Select tables to generate query"} />
+      <Form.Description
+        title="Query Preview"
+        text={generatedQuery || "Select tables to generate query"}
+      />
     </Form>
   );
 }
@@ -293,13 +383,14 @@ function ColumnSelectQueryBuilder({ table }: { table: OsqueryTable }) {
 
   const availableColumns = useMemo(
     () => table.columns.filter((c) => !c.hidden),
-    [table]
+    [table],
   );
 
   const requiredCols = useMemo(() => getRequiredColumns(table), [table]);
 
   const generatedQuery = useMemo(() => {
-    const cols = selectedColumns.length > 0 ? selectedColumns.join(",\n       ") : "*";
+    const cols =
+      selectedColumns.length > 0 ? selectedColumns.join(",\n       ") : "*";
     let query = `SELECT ${cols}\nFROM ${table.name}`;
 
     if (requiredCols.length > 0) {
@@ -324,7 +415,11 @@ function ColumnSelectQueryBuilder({ table }: { table: OsqueryTable }) {
       navigationTitle={`Build Query: ${table.name}`}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Copy Query" onSubmit={handleSubmit} icon={Icon.Clipboard} />
+          <Action.SubmitForm
+            title="Copy Query"
+            onSubmit={handleSubmit}
+            icon={Icon.Clipboard}
+          />
         </ActionPanel>
       }
     >
@@ -355,7 +450,10 @@ function ColumnSelectQueryBuilder({ table }: { table: OsqueryTable }) {
       {requiredCols.length > 0 && (
         <>
           <Form.Separator />
-          <Form.Description title="Required WHERE" text="These columns require values" />
+          <Form.Description
+            title="Required WHERE"
+            text="These columns require values"
+          />
           {requiredCols.map((colName) => {
             const col = table.columns.find((c) => c.name === colName);
             return (
@@ -363,10 +461,16 @@ function ColumnSelectQueryBuilder({ table }: { table: OsqueryTable }) {
                 key={colName}
                 id={colName}
                 title={colName}
-                placeholder={col?.type === "INTEGER" || col?.type === "BIGINT" ? "e.g. 123" : "e.g. value"}
+                placeholder={
+                  col?.type === "INTEGER" || col?.type === "BIGINT"
+                    ? "e.g. 123"
+                    : "e.g. value"
+                }
                 info={col?.description || ""}
                 value={whereValues[colName] || ""}
-                onChange={(value) => setWhereValues((prev) => ({ ...prev, [colName]: value }))}
+                onChange={(value) =>
+                  setWhereValues((prev) => ({ ...prev, [colName]: value }))
+                }
               />
             );
           })}
@@ -406,14 +510,25 @@ function TablePicker({
                 <Action.Push
                   title="Build Multi-Table Query"
                   icon={Icon.Link}
-                  target={<MultiTableQueryBuilder columnName={columnName} tables={tables} />}
+                  target={
+                    <MultiTableQueryBuilder
+                      columnName={columnName}
+                      tables={tables}
+                    />
+                  }
                 />
               </ActionPanel>
             }
           />
         </List.Section>
       )}
-      <List.Section title={isJoinable ? `Tables with "${columnName}" (${tables.length})` : "Pick a table"}>
+      <List.Section
+        title={
+          isJoinable
+            ? `Tables with "${columnName}" (${tables.length})`
+            : "Pick a table"
+        }
+      >
         {tables.map((table) => {
           const requiredCols = getRequiredColumns(table);
           const hasRequired = requiredCols.length > 0;
@@ -429,10 +544,14 @@ function TablePicker({
           const col = table.columns.find((c) => c.name === columnName);
           const platformColor = (p: string): Color => {
             switch (p) {
-              case "darwin": return Color.Purple;
-              case "linux": return Color.Orange;
-              case "windows": return Color.Blue;
-              default: return Color.SecondaryText;
+              case "darwin":
+                return Color.Purple;
+              case "linux":
+                return Color.Orange;
+              case "windows":
+                return Color.Blue;
+              default:
+                return Color.SecondaryText;
             }
           };
 
@@ -441,8 +560,12 @@ function TablePicker({
               key={table.name}
               title={table.name}
               accessories={[
-                ...(hasRequired ? [{ tag: { value: "WHERE", color: Color.Red } }] : []),
-                ...(table.evented ? [{ tag: { value: "EVENT", color: Color.Orange } }] : []),
+                ...(hasRequired
+                  ? [{ tag: { value: "WHERE", color: Color.Red } }]
+                  : []),
+                ...(table.evented
+                  ? [{ tag: { value: "EVENT", color: Color.Orange } }]
+                  : []),
                 ...getPlatformAccessories(table.platforms),
               ]}
               detail={
@@ -451,32 +574,59 @@ function TablePicker({
                   metadata={
                     <List.Item.Detail.Metadata>
                       <List.Item.Detail.Metadata.TagList title="Table">
-                        <List.Item.Detail.Metadata.TagList.Item text={table.name} color={Color.PrimaryText} />
+                        <List.Item.Detail.Metadata.TagList.Item
+                          text={table.name}
+                          color={Color.PrimaryText}
+                        />
                       </List.Item.Detail.Metadata.TagList>
                       <List.Item.Detail.Metadata.TagList title="Category">
-                        <List.Item.Detail.Metadata.TagList.Item text={categoryInfo.label} color={categoryInfo.color} />
+                        <List.Item.Detail.Metadata.TagList.Item
+                          text={categoryInfo.label}
+                          color={categoryInfo.color}
+                        />
                       </List.Item.Detail.Metadata.TagList>
                       <List.Item.Detail.Metadata.TagList title="Platforms">
                         {table.platforms.map((p) => (
-                          <List.Item.Detail.Metadata.TagList.Item key={p} text={p} color={platformColor(p)} />
+                          <List.Item.Detail.Metadata.TagList.Item
+                            key={p}
+                            text={p}
+                            color={platformColor(p)}
+                          />
                         ))}
                       </List.Item.Detail.Metadata.TagList>
                       {requiredCols.length > 0 && (
                         <List.Item.Detail.Metadata.TagList title="Required WHERE">
                           {requiredCols.map((c) => (
-                            <List.Item.Detail.Metadata.TagList.Item key={c} text={c} color={Color.Red} />
+                            <List.Item.Detail.Metadata.TagList.Item
+                              key={c}
+                              text={c}
+                              color={Color.Red}
+                            />
                           ))}
                         </List.Item.Detail.Metadata.TagList>
                       )}
                       {table.evented && (
                         <List.Item.Detail.Metadata.TagList title="Evented">
-                          <List.Item.Detail.Metadata.TagList.Item text="Yes" color={Color.Orange} />
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="Yes"
+                            color={Color.Orange}
+                          />
                         </List.Item.Detail.Metadata.TagList>
                       )}
                       <List.Item.Detail.Metadata.Separator />
-                      <List.Item.Detail.Metadata.TagList title={`Column: ${columnName}`}>
-                        <List.Item.Detail.Metadata.TagList.Item text={col?.type || "unknown"} color={Color.Blue} />
-                        {col?.required && <List.Item.Detail.Metadata.TagList.Item text="required" color={Color.Red} />}
+                      <List.Item.Detail.Metadata.TagList
+                        title={`Column: ${columnName}`}
+                      >
+                        <List.Item.Detail.Metadata.TagList.Item
+                          text={col?.type || "unknown"}
+                          color={Color.Blue}
+                        />
+                        {col?.required && (
+                          <List.Item.Detail.Metadata.TagList.Item
+                            text="required"
+                            color={Color.Red}
+                          />
+                        )}
                       </List.Item.Detail.Metadata.TagList>
                     </List.Item.Detail.Metadata>
                   }
@@ -507,14 +657,24 @@ function TablePicker({
                       <Action.Push
                         title={`Build JOIN Query (${tables.length - 1} other tables)`}
                         icon={Icon.Link}
-                        target={<JoinQueryBuilder columnName={columnName} table1={table} tables={tables} />}
+                        target={
+                          <JoinQueryBuilder
+                            columnName={columnName}
+                            table1={table}
+                            tables={tables}
+                          />
+                        }
                         shortcut={{ modifiers: ["cmd"], key: "j" }}
                       />
                     </ActionPanel.Section>
                   )}
 
                   <ActionPanel.Section title="Docs">
-                    <Action.OpenInBrowser title="Open Docs" url={`https://osquery.io/schema/#${table.name}`} shortcut={{ modifiers: ["cmd"], key: "o" }} />
+                    <Action.OpenInBrowser
+                      title="Open Docs"
+                      url={`https://osquery.io/schema/#${table.name}`}
+                      shortcut={{ modifiers: ["cmd"], key: "o" }}
+                    />
                     <Action.OpenInBrowser title="Open Specs" url={table.url} />
                   </ActionPanel.Section>
                 </ActionPanel>
@@ -539,7 +699,10 @@ export default function FindColumn() {
 
   // Build column index
   const columnMatches = useMemo<ColumnMatch[]>(() => {
-    const columnIndex = new Map<string, { tables: OsqueryTable[]; types: Set<string> }>();
+    const columnIndex = new Map<
+      string,
+      { tables: OsqueryTable[]; types: Set<string> }
+    >();
 
     for (const table of allTables) {
       for (const col of table.columns) {
@@ -608,7 +771,11 @@ export default function FindColumn() {
           {/* Joinable columns section */}
           {joinableColumns.length > 0 && (
             <List.Section
-              title={searchText ? `Joinable Columns (${joinableColumns.length})` : "Joinable Columns"}
+              title={
+                searchText
+                  ? `Joinable Columns (${joinableColumns.length})`
+                  : "Joinable Columns"
+              }
               subtitle="Columns found in multiple tables"
             >
               {joinableColumns.map((match) => (
@@ -625,7 +792,12 @@ export default function FindColumn() {
                       <Action.Push
                         title={`Pick "${match.columnName}" → Choose Table`}
                         icon={Icon.ArrowRight}
-                        target={<TablePicker columnName={match.columnName} tables={match.tables} />}
+                        target={
+                          <TablePicker
+                            columnName={match.columnName}
+                            tables={match.tables}
+                          />
+                        }
                       />
                       <Action.CopyToClipboard
                         title="Copy Column Name"
@@ -642,7 +814,11 @@ export default function FindColumn() {
           {/* Single-table columns section */}
           {singleTableColumns.length > 0 && (
             <List.Section
-              title={searchText ? `Single-Table Columns (${singleTableColumns.length})` : "Single-Table Columns"}
+              title={
+                searchText
+                  ? `Single-Table Columns (${singleTableColumns.length})`
+                  : "Single-Table Columns"
+              }
               subtitle="Columns unique to one table"
             >
               {singleTableColumns.map((match) => (
@@ -656,7 +832,12 @@ export default function FindColumn() {
                       <Action.Push
                         title={`Pick "${match.columnName}" → View Table`}
                         icon={Icon.ArrowRight}
-                        target={<TablePicker columnName={match.columnName} tables={match.tables} />}
+                        target={
+                          <TablePicker
+                            columnName={match.columnName}
+                            tables={match.tables}
+                          />
+                        }
                       />
                       <Action.CopyToClipboard
                         title="Copy Column Name"
