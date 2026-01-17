@@ -30,6 +30,7 @@ import {
 
 interface Preferences {
   defaultPlatform: Platform;
+  fleetUrl?: string;
 }
 
 type SearchMode = "tables" | "columns";
@@ -312,6 +313,8 @@ function PolicyPreview({
   hasConditions,
 }: PolicyPreviewProps) {
   const { pop } = useNavigation();
+  const preferences = getPreferenceValues<Preferences>();
+  const fleetUrl = preferences.fleetUrl?.replace(/\/$/, ""); // Remove trailing slash
 
   const markdown = `
 # Fleet Policy Preview
@@ -360,6 +363,14 @@ ${!hasConditions ? `\n⚠️ **Warning:** No WHERE conditions specified. This po
             content={policyQuery.replace(/\n/g, " ")}
             shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}
           />
+          {fleetUrl && (
+            <Action.OpenInBrowser
+              title="Open in Fleet"
+              url={`${fleetUrl}/policies/new`}
+              icon={Icon.Globe}
+              shortcut={{ modifiers: ["cmd"], key: "o" }}
+            />
+          )}
           <Action
             title="Back"
             icon={Icon.ArrowLeft}

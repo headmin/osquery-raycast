@@ -61,6 +61,14 @@
           "value": "windows"
         }
       ]
+    },
+    {
+      "name": "fleetUrl",
+      "type": "textfield",
+      "required": false,
+      "title": "Fleet URL",
+      "description": "Your Fleet server URL (e.g., https://fleet.example.com)",
+      "placeholder": "https://fleet.example.com"
     }
   ],
   "dependencies": {
@@ -76,7 +84,7 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "build": "ray build -e dist",
+    "build": "ray build",
     "dev": "ray develop",
     "fix-lint": "ray lint --fix",
     "lint": "ray lint",

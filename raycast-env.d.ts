@@ -9,7 +9,9 @@
 
 type ExtensionPreferences = {
   /** Default Platform - Filter tables by platform */
-  "defaultPlatform": "all" | "darwin" | "linux" | "windows"
+  "defaultPlatform": "all" | "darwin" | "linux" | "windows",
+  /** Fleet URL - Your Fleet server URL (e.g., https://fleet.example.com) */
+  "fleetUrl"?: string
 }
 
 /** Preferences accessible in all the extension's commands */
