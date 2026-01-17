@@ -9,6 +9,8 @@ import {
   getPreferenceValues,
   Icon,
   Color,
+  useNavigation,
+  Detail,
 } from "@raycast/api";
 import { useState, useMemo, useEffect } from "react";
 import { getSchema, filterByPlatform } from "./schema/loader";
@@ -25,7 +27,17 @@ interface WhereCondition {
   required: boolean;
 }
 
-type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "LIKE" | "IN" | "IS NULL" | "IS NOT NULL";
+type Operator =
+  | "="
+  | "!="
+  | ">"
+  | "<"
+  | ">="
+  | "<="
+  | "LIKE"
+  | "IN"
+  | "IS NULL"
+  | "IS NOT NULL";
 
 const OPERATORS: { value: Operator; title: string; needsValue: boolean }[] = [
   { value: "=", title: "equals (=)", needsValue: true },
@@ -58,7 +70,7 @@ function buildQuery(
   columns: string[],
   whereConditions: WhereCondition[],
   limit?: string,
-  orderBy?: string
+  orderBy?: string,
 ): string {
   const selectCols = columns.length > 0 ? columns.join(", ") : "*";
   let query = `SELECT ${selectCols}\nFROM ${table}`;
@@ -96,7 +108,160 @@ function buildQuery(
   return query + ";";
 }
 
+function buildPolicyQuery(
+  table: string,
+  whereConditions: WhereCondition[],
+): { query: string; hasConditions: boolean } {
+  let query = `SELECT 1 FROM ${table}`;
+
+  const validConditions = whereConditions.filter((w) => {
+    if (!w.column) return false;
+    const op = OPERATORS.find((o) => o.value === w.operator);
+    if (op?.needsValue && !w.value) return false;
+    return true;
+  });
+
+  const hasConditions = validConditions.length > 0;
+
+  if (hasConditions) {
+    const clauses = validConditions.map((w) => {
+      const op = OPERATORS.find((o) => o.value === w.operator);
+      if (op?.needsValue) {
+        return `${w.column} ${w.operator} ${formatValue(w.value, w.operator as Operator)}`;
+      }
+      return `${w.column} ${w.operator}`;
+    });
+    query += ` WHERE ${clauses.join(" AND ")}`;
+  }
+
+  return { query: query + ";", hasConditions };
+}
+
+function generatePolicyQuestion(
+  table: string,
+  whereConditions: WhereCondition[],
+): string {
+  const validConditions = whereConditions.filter((w) => {
+    if (!w.column) return false;
+    const op = OPERATORS.find((o) => o.value === w.operator);
+    if (op?.needsValue && !w.value) return false;
+    return true;
+  });
+
+  if (validConditions.length === 0) {
+    return `Is there any row in '${table}'?`;
+  }
+
+  const conditionDescriptions = validConditions.map((w) => {
+    switch (w.operator) {
+      case "=":
+        return `${w.column} is '${w.value}'`;
+      case "!=":
+        return `${w.column} is not '${w.value}'`;
+      case ">":
+        return `${w.column} is greater than '${w.value}'`;
+      case "<":
+        return `${w.column} is less than '${w.value}'`;
+      case ">=":
+        return `${w.column} is at least '${w.value}'`;
+      case "<=":
+        return `${w.column} is at most '${w.value}'`;
+      case "LIKE":
+        return `${w.column} matches '${w.value}'`;
+      case "IN":
+        return `${w.column} is one of (${w.value})`;
+      case "IS NULL":
+        return `${w.column} is null`;
+      case "IS NOT NULL":
+        return `${w.column} is not null`;
+      default:
+        return `${w.column} ${w.operator} ${w.value}`;
+    }
+  });
+
+  if (conditionDescriptions.length === 1) {
+    return `Is there a row in '${table}' where ${conditionDescriptions[0]}?`;
+  }
+
+  return `Is there a row in '${table}' where ${conditionDescriptions.join(" AND ")}?`;
+}
+
+interface PolicyPreviewProps {
+  table: string;
+  policyQuery: string;
+  policyQuestion: string;
+  hasConditions: boolean;
+}
+
+function PolicyPreview({
+  table,
+  policyQuery,
+  policyQuestion,
+  hasConditions,
+}: PolicyPreviewProps) {
+  const { pop } = useNavigation();
+
+  const markdown = `
+# Fleet Policy Preview
+
+## Policy Query
+
+\`\`\`sql
+${policyQuery}
+\`\`\`
+
+## Policy Question
+
+> ${policyQuestion}
+
+## How Fleet Policies Work
+
+| Result | Meaning |
+|--------|---------|
+| **Pass** | Query returns 1+ rows (condition is true) |
+| **Fail** | Query returns 0 rows (condition is false) |
+
+${!hasConditions ? `\n⚠️ **Warning:** No WHERE conditions specified. This policy will **always pass** if the \`${table}\` table has any rows.\n` : ""}
+
+---
+
+*Copy this query and paste it into Fleet's policy editor.*
+`;
+
+  return (
+    <Detail
+      markdown={markdown}
+      actions={
+        <ActionPanel>
+          <Action.CopyToClipboard
+            title="Copy Policy Query"
+            content={policyQuery}
+            shortcut={{ modifiers: ["cmd"], key: "c" }}
+          />
+          <Action.CopyToClipboard
+            title="Copy Question"
+            content={policyQuestion}
+            shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+          />
+          <Action.CopyToClipboard
+            title="Copy Single Line"
+            content={policyQuery.replace(/\n/g, " ")}
+            shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}
+          />
+          <Action
+            title="Back"
+            icon={Icon.ArrowLeft}
+            onAction={pop}
+            shortcut={{ modifiers: ["cmd"], key: "[" }}
+          />
+        </ActionPanel>
+      }
+    />
+  );
+}
+
 export default function BuildQuery() {
+  const { push } = useNavigation();
   const preferences = getPreferenceValues<Preferences>();
   const platform = preferences.defaultPlatform || "darwin";
 
@@ -106,11 +271,14 @@ export default function BuildQuery() {
   const [orderBy, setOrderBy] = useState<string>("");
 
   // Required column values (keyed by column name)
-  const [requiredValues, setRequiredValues] = useState<Record<string, string>>({});
+  const [requiredValues, setRequiredValues] = useState<Record<string, string>>(
+    {},
+  );
 
   // Optional WHERE clause
   const [optionalWhereColumn, setOptionalWhereColumn] = useState<string>("");
-  const [optionalWhereOperator, setOptionalWhereOperator] = useState<Operator>("=");
+  const [optionalWhereOperator, setOptionalWhereOperator] =
+    useState<Operator>("=");
   const [optionalWhereValue, setOptionalWhereValue] = useState<string>("");
 
   const tables = useMemo(() => {
@@ -160,11 +328,23 @@ export default function BuildQuery() {
     }
 
     return conditions;
-  }, [requiredColumns, requiredValues, optionalWhereColumn, optionalWhereOperator, optionalWhereValue]);
+  }, [
+    requiredColumns,
+    requiredValues,
+    optionalWhereColumn,
+    optionalWhereOperator,
+    optionalWhereValue,
+  ]);
 
   const generatedQuery = useMemo(() => {
     if (!selectedTable) return "";
-    return buildQuery(selectedTable, selectedColumns, whereConditions, limit, orderBy);
+    return buildQuery(
+      selectedTable,
+      selectedColumns,
+      whereConditions,
+      limit,
+      orderBy,
+    );
   }, [selectedTable, selectedColumns, whereConditions, limit, orderBy]);
 
   const missingRequired = useMemo(() => {
@@ -173,7 +353,10 @@ export default function BuildQuery() {
 
   async function handleSubmit() {
     if (!selectedTable) {
-      await showToast({ style: Toast.Style.Failure, title: "Please select a table" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Please select a table",
+      });
       return;
     }
 
@@ -187,8 +370,33 @@ export default function BuildQuery() {
     }
 
     await Clipboard.copy(generatedQuery);
-    await showToast({ style: Toast.Style.Success, title: "Query copied to clipboard" });
+    await showToast({
+      style: Toast.Style.Success,
+      title: "Query copied to clipboard",
+    });
     await popToRoot();
+  }
+
+  function handleConvertToPolicy() {
+    if (!selectedTable) {
+      showToast({ style: Toast.Style.Failure, title: "Please select a table" });
+      return;
+    }
+
+    const { query, hasConditions } = buildPolicyQuery(
+      selectedTable,
+      whereConditions,
+    );
+    const question = generatePolicyQuestion(selectedTable, whereConditions);
+
+    push(
+      <PolicyPreview
+        table={selectedTable}
+        policyQuery={query}
+        policyQuestion={question}
+        hasConditions={hasConditions}
+      />,
+    );
   }
 
   return (
@@ -203,19 +411,38 @@ export default function BuildQuery() {
               shortcut={{ modifiers: ["cmd"], key: "c" }}
             />
           )}
+          {selectedTable && (
+            <Action
+              title="Convert to Policy"
+              icon={Icon.Shield}
+              onAction={handleConvertToPolicy}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
+            />
+          )}
         </ActionPanel>
       }
     >
-      <Form.Dropdown id="table" title="Table" value={selectedTable} onChange={setSelectedTable}>
+      <Form.Dropdown
+        id="table"
+        title="Table"
+        value={selectedTable}
+        onChange={setSelectedTable}
+      >
         <Form.Dropdown.Item title="Select a table..." value="" />
         {tables.map((table) => {
           const hasRequired = table.columns.some((c) => c.required);
           return (
             <Form.Dropdown.Item
               key={table.name}
-              title={hasRequired ? `${table.name} (WHERE required)` : table.name}
+              title={
+                hasRequired ? `${table.name} (WHERE required)` : table.name
+              }
               value={table.name}
-              icon={hasRequired ? { source: Icon.ExclamationMark, tintColor: Color.Red } : undefined}
+              icon={
+                hasRequired
+                  ? { source: Icon.ExclamationMark, tintColor: Color.Red }
+                  : undefined
+              }
             />
           );
         })}
@@ -254,7 +481,10 @@ export default function BuildQuery() {
                   placeholder={`Enter ${col.name} value (REQUIRED)`}
                   value={requiredValues[col.name] || ""}
                   onChange={(value) =>
-                    setRequiredValues((prev) => ({ ...prev, [col.name]: value }))
+                    setRequiredValues((prev) => ({
+                      ...prev,
+                      [col.name]: value,
+                    }))
                   }
                   info={col.description}
                 />
@@ -264,7 +494,10 @@ export default function BuildQuery() {
 
           {/* Optional WHERE clause */}
           <Form.Separator />
-          <Form.Description title="Additional WHERE" text="Optional extra filter" />
+          <Form.Description
+            title="Additional WHERE"
+            text="Optional extra filter"
+          />
 
           <Form.Dropdown
             id="whereColumn"
@@ -293,11 +526,16 @@ export default function BuildQuery() {
                 onChange={(v) => setOptionalWhereOperator(v as Operator)}
               >
                 {OPERATORS.map((op) => (
-                  <Form.Dropdown.Item key={op.value} title={op.title} value={op.value} />
+                  <Form.Dropdown.Item
+                    key={op.value}
+                    title={op.title}
+                    value={op.value}
+                  />
                 ))}
               </Form.Dropdown>
 
-              {OPERATORS.find((o) => o.value === optionalWhereOperator)?.needsValue && (
+              {OPERATORS.find((o) => o.value === optionalWhereOperator)
+                ?.needsValue && (
                 <Form.TextField
                   id="whereValue"
                   title="Value"
@@ -312,10 +550,19 @@ export default function BuildQuery() {
           <Form.Separator />
           <Form.Description title="Options" text="ORDER BY and LIMIT" />
 
-          <Form.Dropdown id="orderBy" title="Order By" value={orderBy} onChange={setOrderBy}>
+          <Form.Dropdown
+            id="orderBy"
+            title="Order By"
+            value={orderBy}
+            onChange={setOrderBy}
+          >
             <Form.Dropdown.Item title="None" value="" />
             {columns.map((col) => (
-              <Form.Dropdown.Item key={col.name} title={col.name} value={col.name} />
+              <Form.Dropdown.Item
+                key={col.name}
+                title={col.name}
+                value={col.name}
+              />
             ))}
           </Form.Dropdown>
 
