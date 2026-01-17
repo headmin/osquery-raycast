@@ -10,16 +10,28 @@ import {
   Clipboard,
 } from "@raycast/api";
 import { useState, useEffect, useMemo } from "react";
-import { validateQuery, ValidationResult, ValidationIssue, IssueSeverity } from "./schema/validator";
+import {
+  validateQuery,
+  ValidationResult,
+  ValidationIssue,
+  IssueSeverity,
+} from "./schema/validator";
 import { Platform } from "./schema/types";
 
 interface Preferences {
   defaultPlatform: Platform;
 }
 
-const SEVERITY_CONFIG: Record<IssueSeverity, { icon: Icon; color: Color; label: string }> = {
+const SEVERITY_CONFIG: Record<
+  IssueSeverity,
+  { icon: Icon; color: Color; label: string }
+> = {
   error: { icon: Icon.XMarkCircle, color: Color.Red, label: "Error" },
-  warning: { icon: Icon.ExclamationMark, color: Color.Orange, label: "Warning" },
+  warning: {
+    icon: Icon.ExclamationMark,
+    color: Color.Orange,
+    label: "Warning",
+  },
   info: { icon: Icon.Info, color: Color.Blue, label: "Info" },
 };
 
@@ -30,12 +42,18 @@ function IssueDetail({ issue }: { issue: ValidationIssue }) {
       metadata={
         <List.Item.Detail.Metadata>
           <List.Item.Detail.Metadata.TagList title={config.label}>
-            <List.Item.Detail.Metadata.TagList.Item text={issue.message} color={config.color} />
+            <List.Item.Detail.Metadata.TagList.Item
+              text={issue.message}
+              color={config.color}
+            />
           </List.Item.Detail.Metadata.TagList>
           {issue.suggestion && (
             <>
               <List.Item.Detail.Metadata.Separator />
-              <List.Item.Detail.Metadata.Label title="Suggestion" text={issue.suggestion} />
+              <List.Item.Detail.Metadata.Label
+                title="Suggestion"
+                text={issue.suggestion}
+              />
             </>
           )}
         </List.Item.Detail.Metadata>
@@ -54,12 +72,20 @@ function ValidationResults({
   onBack: () => void;
 }) {
   const sortedIssues = useMemo(() => {
-    const order: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
-    return [...result.issues].sort((a, b) => order[a.severity] - order[b.severity]);
+    const order: Record<IssueSeverity, number> = {
+      error: 0,
+      warning: 1,
+      info: 2,
+    };
+    return [...result.issues].sort(
+      (a, b) => order[a.severity] - order[b.severity],
+    );
   }, [result.issues]);
 
   const errorCount = result.issues.filter((i) => i.severity === "error").length;
-  const warningCount = result.issues.filter((i) => i.severity === "warning").length;
+  const warningCount = result.issues.filter(
+    (i) => i.severity === "warning",
+  ).length;
   const infoCount = result.issues.filter((i) => i.severity === "info").length;
 
   return (
@@ -82,7 +108,10 @@ function ValidationResults({
                 metadata={
                   <List.Item.Detail.Metadata>
                     <List.Item.Detail.Metadata.TagList title="Status">
-                      <List.Item.Detail.Metadata.TagList.Item text="Valid" color={Color.Green} />
+                      <List.Item.Detail.Metadata.TagList.Item
+                        text="Valid"
+                        color={Color.Green}
+                      />
                     </List.Item.Detail.Metadata.TagList>
                   </List.Item.Detail.Metadata>
                 }
@@ -90,7 +119,11 @@ function ValidationResults({
             }
             actions={
               <ActionPanel>
-                <Action title="Go Back" onAction={onBack} icon={Icon.ArrowLeft} />
+                <Action
+                  title="Go Back"
+                  onAction={onBack}
+                  icon={Icon.ArrowLeft}
+                />
                 <Action.CopyToClipboard title="Copy Query" content={query} />
               </ActionPanel>
             }
@@ -104,7 +137,9 @@ function ValidationResults({
                 title={issue.message}
                 subtitle={issue.suggestion}
                 icon={{ source: config.icon, tintColor: config.color }}
-                accessories={[{ tag: { value: config.label, color: config.color } }]}
+                accessories={[
+                  { tag: { value: config.label, color: config.color } },
+                ]}
                 detail={<IssueDetail issue={issue} />}
                 actions={
                   <ActionPanel>
@@ -116,10 +151,17 @@ function ValidationResults({
                           shortcut={{ modifiers: ["cmd"], key: "c" }}
                         />
                       )}
-                      <Action title="Go Back" onAction={onBack} icon={Icon.ArrowLeft} />
+                      <Action
+                        title="Go Back"
+                        onAction={onBack}
+                        icon={Icon.ArrowLeft}
+                      />
                     </ActionPanel.Section>
                     <ActionPanel.Section>
-                      <Action.CopyToClipboard title="Copy Original Query" content={query} />
+                      <Action.CopyToClipboard
+                        title="Copy Original Query"
+                        content={query}
+                      />
                     </ActionPanel.Section>
                   </ActionPanel>
                 }
@@ -140,8 +182,14 @@ function ValidationResults({
               markdown={`\`\`\`sql\n${query}\n\`\`\``}
               metadata={
                 <List.Item.Detail.Metadata>
-                  <List.Item.Detail.Metadata.Label title="Table" text={result.parsedTable || "Unknown"} />
-                  <List.Item.Detail.Metadata.Label title="Columns" text={result.parsedColumns?.join(", ") || "*"} />
+                  <List.Item.Detail.Metadata.Label
+                    title="Table"
+                    text={result.parsedTable || "Unknown"}
+                  />
+                  <List.Item.Detail.Metadata.Label
+                    title="Columns"
+                    text={result.parsedColumns?.join(", ") || "*"}
+                  />
                 </List.Item.Detail.Metadata>
               }
             />
@@ -187,11 +235,7 @@ export default function ValidateQuery() {
 
     const result = validateQuery(query, platform);
     push(
-      <ValidationResults
-        query={query}
-        result={result}
-        onBack={() => pop()}
-      />
+      <ValidationResults query={query} result={result} onBack={() => pop()} />,
     );
   }
 
@@ -203,7 +247,11 @@ export default function ValidateQuery() {
     <Form
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Validate Query" onSubmit={handleSubmit} icon={Icon.Checkmark} />
+          <Action.SubmitForm
+            title="Validate Query"
+            onSubmit={handleSubmit}
+            icon={Icon.Checkmark}
+          />
         </ActionPanel>
       }
     >

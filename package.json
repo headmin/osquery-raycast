@@ -12,7 +12,7 @@
   "commands": [
     {
       "name": "search-tables",
-      "title": "Search osquery Tables",
+      "title": "Search Osquery Tables",
       "description": "Search tables and columns with category filters",
       "mode": "view"
     },
@@ -24,13 +24,13 @@
     },
     {
       "name": "query-templates",
-      "title": "osquery Query Templates",
+      "title": "Osquery Query Templates",
       "description": "Browse common query templates by category",
       "mode": "view"
     },
     {
       "name": "validate-query",
-      "title": "Validate osquery Query",
+      "title": "Validate Osquery Query",
       "description": "Validate SQL queries against the schema",
       "mode": "view"
     }

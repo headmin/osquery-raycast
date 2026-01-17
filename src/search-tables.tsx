@@ -371,7 +371,10 @@ ${!hasConditions ? `\n⚠️ **Warning:** No WHERE conditions specified. This po
               shortcut={{ modifiers: ["cmd"], key: "o" }}
               onAction={async () => {
                 await Clipboard.copy(policyQuery);
-                await showToast({ style: Toast.Style.Success, title: "Query copied to clipboard" });
+                await showToast({
+                  style: Toast.Style.Success,
+                  title: "Query copied to clipboard",
+                });
                 await open(`${fleetUrl}/policies/new`);
               }}
             />

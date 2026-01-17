@@ -17,7 +17,12 @@ export interface ValidationResult {
 }
 
 // Simple SQL parser - extracts table and columns from SELECT statement
-function parseQuery(query: string): { table?: string; columns?: string[]; hasWhere: boolean; hasLimit: boolean } {
+function parseQuery(query: string): {
+  table?: string;
+  columns?: string[];
+  hasWhere: boolean;
+  hasLimit: boolean;
+} {
   const normalized = query.replace(/\s+/g, " ").trim().toLowerCase();
 
   // Extract table name from FROM clause
@@ -34,7 +39,12 @@ function parseQuery(query: string): { table?: string; columns?: string[]; hasWhe
     } else {
       columns = columnsPart
         .split(",")
-        .map((c) => c.trim().split(/\s+as\s+/i)[0].trim()) // Handle aliases
+        .map((c) =>
+          c
+            .trim()
+            .split(/\s+as\s+/i)[0]
+            .trim(),
+        ) // Handle aliases
         .filter((c) => c.length > 0);
     }
   }
@@ -48,7 +58,9 @@ function parseQuery(query: string): { table?: string; columns?: string[]; hasWhe
 // Extract columns used in WHERE clause
 function parseWhereColumns(query: string): string[] {
   const normalized = query.replace(/\s+/g, " ").trim();
-  const whereMatch = normalized.match(/where\s+(.+?)(?:order|group|limit|;|$)/i);
+  const whereMatch = normalized.match(
+    /where\s+(.+?)(?:order|group|limit|;|$)/i,
+  );
 
   if (!whereMatch) return [];
 
@@ -56,7 +68,9 @@ function parseWhereColumns(query: string): string[] {
   const columns: string[] = [];
 
   // Match column names before operators
-  const matches = whereClause.matchAll(/([a-z_][a-z0-9_]*)\s*(?:=|!=|<>|<=|>=|<|>|like|in|is)/gi);
+  const matches = whereClause.matchAll(
+    /([a-z_][a-z0-9_]*)\s*(?:=|!=|<>|<=|>=|<|>|like|in|is)/gi,
+  );
   for (const match of matches) {
     columns.push(match[1].toLowerCase());
   }
@@ -64,7 +78,10 @@ function parseWhereColumns(query: string): string[] {
   return [...new Set(columns)];
 }
 
-export function validateQuery(query: string, platform: string = "darwin"): ValidationResult {
+export function validateQuery(
+  query: string,
+  platform: string = "darwin",
+): ValidationResult {
   const issues: ValidationIssue[] = [];
 
   if (!query.trim()) {
@@ -100,14 +117,19 @@ export function validateQuery(query: string, platform: string = "darwin"): Valid
     // Try to suggest similar tables
     const allTables = getSchema();
     const similar = allTables
-      .filter((t) => t.name.includes(parsed.table!) || parsed.table!.includes(t.name.slice(0, 4)))
+      .filter(
+        (t) =>
+          t.name.includes(parsed.table!) ||
+          parsed.table!.includes(t.name.slice(0, 4)),
+      )
       .slice(0, 3)
       .map((t) => t.name);
 
     issues.push({
       severity: "error",
       message: `Unknown table: ${parsed.table}`,
-      suggestion: similar.length > 0 ? `Did you mean: ${similar.join(", ")}?` : undefined,
+      suggestion:
+        similar.length > 0 ? `Did you mean: ${similar.join(", ")}?` : undefined,
     });
     return { valid: false, issues, parsedTable: parsed.table };
   }
@@ -131,21 +153,30 @@ export function validateQuery(query: string, platform: string = "darwin"): Valid
 
       const colName = col.toLowerCase().replace(/^[a-z]+\./, ""); // Remove table prefix
       if (!tableColumns.includes(colName)) {
-        const similar = tableColumns.filter((tc) => tc.includes(colName) || colName.includes(tc.slice(0, 3)));
+        const similar = tableColumns.filter(
+          (tc) => tc.includes(colName) || colName.includes(tc.slice(0, 3)),
+        );
         issues.push({
           severity: "error",
           message: `Unknown column: ${col}`,
-          suggestion: similar.length > 0 ? `Did you mean: ${similar.slice(0, 3).join(", ")}?` : undefined,
+          suggestion:
+            similar.length > 0
+              ? `Did you mean: ${similar.slice(0, 3).join(", ")}?`
+              : undefined,
         });
       }
     }
   }
 
   // Check required columns
-  const requiredColumns = table.columns.filter((c) => c.required).map((c) => c.name.toLowerCase());
+  const requiredColumns = table.columns
+    .filter((c) => c.required)
+    .map((c) => c.name.toLowerCase());
   if (requiredColumns.length > 0) {
     const whereColumns = parseWhereColumns(query);
-    const missingRequired = requiredColumns.filter((rc) => !whereColumns.includes(rc));
+    const missingRequired = requiredColumns.filter(
+      (rc) => !whereColumns.includes(rc),
+    );
 
     if (missingRequired.length > 0) {
       issues.push({

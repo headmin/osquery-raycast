@@ -5,14 +5,20 @@ export function getSchema(): OsquerySchema {
   return schema as OsquerySchema;
 }
 
-export function filterByPlatform(tables: OsquerySchema, platform: Platform): OsquerySchema {
+export function filterByPlatform(
+  tables: OsquerySchema,
+  platform: Platform,
+): OsquerySchema {
   if (platform === "all") {
     return tables;
   }
   return tables.filter((table) => table.platforms.includes(platform));
 }
 
-export function searchTables(tables: OsquerySchema, query: string): OsquerySchema {
+export function searchTables(
+  tables: OsquerySchema,
+  query: string,
+): OsquerySchema {
   if (!query.trim()) {
     return tables;
   }
@@ -29,7 +35,9 @@ export function searchTables(tables: OsquerySchema, query: string): OsquerySchem
       return true;
     }
     // Match column names
-    if (table.columns.some((col) => col.name.toLowerCase().includes(lowerQuery))) {
+    if (
+      table.columns.some((col) => col.name.toLowerCase().includes(lowerQuery))
+    ) {
       return true;
     }
     return false;

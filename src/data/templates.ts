@@ -8,9 +8,18 @@ export interface QueryTemplate {
   tags: string[];
 }
 
-export type TemplateCategory = "system" | "process" | "network" | "user" | "security" | "app";
+export type TemplateCategory =
+  | "system"
+  | "process"
+  | "network"
+  | "user"
+  | "security"
+  | "app";
 
-export const TEMPLATE_CATEGORIES: Record<TemplateCategory, { label: string; icon: string }> = {
+export const TEMPLATE_CATEGORIES: Record<
+  TemplateCategory,
+  { label: string; icon: string }
+> = {
   system: { label: "System", icon: "💻" },
   process: { label: "Processes", icon: "⚙️" },
   network: { label: "Network", icon: "🌐" },
@@ -24,7 +33,8 @@ export const QUERY_TEMPLATES: QueryTemplate[] = [
   {
     id: "system-info",
     name: "System Information",
-    description: "Get basic system information including hostname, OS version, and hardware",
+    description:
+      "Get basic system information including hostname, OS version, and hardware",
     category: "system",
     query: `SELECT
   hostname,

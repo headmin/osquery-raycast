@@ -13,47 +13,149 @@ export type TableCategory =
   | "app"
   | "other";
 
-export const CATEGORY_INFO: Record<TableCategory, { label: string; color: Color; keywords: string[] }> = {
+export const CATEGORY_INFO: Record<
+  TableCategory,
+  { label: string; color: Color; keywords: string[] }
+> = {
   all: { label: "All", color: Color.PrimaryText, keywords: [] },
   system: {
     label: "System",
     color: Color.Blue,
-    keywords: ["system", "os", "kernel", "boot", "uptime", "version", "info", "time", "hostname", "platform"],
+    keywords: [
+      "system",
+      "os",
+      "kernel",
+      "boot",
+      "uptime",
+      "version",
+      "info",
+      "time",
+      "hostname",
+      "platform",
+    ],
   },
   process: {
     label: "Processes",
     color: Color.Orange,
-    keywords: ["process", "pid", "thread", "memory", "cpu", "socket", "port", "listen", "open_file", "handle"],
+    keywords: [
+      "process",
+      "pid",
+      "thread",
+      "memory",
+      "cpu",
+      "socket",
+      "port",
+      "listen",
+      "open_file",
+      "handle",
+    ],
   },
   network: {
     label: "Network",
     color: Color.Green,
-    keywords: ["network", "interface", "route", "arp", "dns", "ip", "socket", "connection", "firewall", "iptables", "curl"],
+    keywords: [
+      "network",
+      "interface",
+      "route",
+      "arp",
+      "dns",
+      "ip",
+      "socket",
+      "connection",
+      "firewall",
+      "iptables",
+      "curl",
+    ],
   },
   user: {
     label: "Users",
     color: Color.Yellow,
-    keywords: ["user", "account", "group", "login", "session", "sudoer", "shadow", "passwd", "uid", "gid"],
+    keywords: [
+      "user",
+      "account",
+      "group",
+      "login",
+      "session",
+      "sudoer",
+      "shadow",
+      "passwd",
+      "uid",
+      "gid",
+    ],
   },
   security: {
     label: "Security",
     color: Color.Red,
-    keywords: ["security", "certificate", "keychain", "auth", "password", "encryption", "sip", "gatekeeper", "xprotect", "tcc", "privacy", "signature", "hash", "yara"],
+    keywords: [
+      "security",
+      "certificate",
+      "keychain",
+      "auth",
+      "password",
+      "encryption",
+      "sip",
+      "gatekeeper",
+      "xprotect",
+      "tcc",
+      "privacy",
+      "signature",
+      "hash",
+      "yara",
+    ],
   },
   hardware: {
     label: "Hardware",
     color: Color.Purple,
-    keywords: ["hardware", "cpu", "memory", "disk", "usb", "pci", "battery", "power", "fan", "temperature", "acpi", "smbios", "block_device"],
+    keywords: [
+      "hardware",
+      "cpu",
+      "memory",
+      "disk",
+      "usb",
+      "pci",
+      "battery",
+      "power",
+      "fan",
+      "temperature",
+      "acpi",
+      "smbios",
+      "block_device",
+    ],
   },
   file: {
     label: "Files",
     color: Color.Magenta,
-    keywords: ["file", "directory", "path", "filesystem", "mount", "extended_attribute", "hash", "magic", "mtime", "atime"],
+    keywords: [
+      "file",
+      "directory",
+      "path",
+      "filesystem",
+      "mount",
+      "extended_attribute",
+      "hash",
+      "magic",
+      "mtime",
+      "atime",
+    ],
   },
   app: {
     label: "Apps",
     color: Color.SecondaryText,
-    keywords: ["app", "application", "package", "brew", "install", "bundle", "launchd", "plist", "browser", "chrome", "firefox", "safari", "extension"],
+    keywords: [
+      "app",
+      "application",
+      "package",
+      "brew",
+      "install",
+      "bundle",
+      "launchd",
+      "plist",
+      "browser",
+      "chrome",
+      "firefox",
+      "safari",
+      "extension",
+    ],
   },
   other: {
     label: "Other",
@@ -83,7 +185,10 @@ export function getTableCategory(table: OsqueryTable): TableCategory {
   return categorizeTable(table);
 }
 
-export function filterByCategory(tables: OsqueryTable[], category: TableCategory): OsqueryTable[] {
+export function filterByCategory(
+  tables: OsqueryTable[],
+  category: TableCategory,
+): OsqueryTable[] {
   if (category === "all") {
     return tables;
   }
