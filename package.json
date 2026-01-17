@@ -2,7 +2,7 @@
   "name": "ray-osquery",
   "title": "Ray-OSQuery",
   "description": "Schema-driven osquery query authoring tool with table discovery and query builder",
-  "icon": "osquery.svg",
+  "icon": "osquery.png",
   "author": "henry",
   "categories": [
     "Developer Tools",

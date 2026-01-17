@@ -655,7 +655,7 @@ function TablePicker({
                   {isJoinable && (
                     <ActionPanel.Section title="JOIN">
                       <Action.Push
-                        title={`Build JOIN Query (${tables.length - 1} other tables)`}
+                        title={`Build JOIN Query (${tables.length - 1} Other Tables)`}
                         icon={Icon.Link}
                         target={
                           <JoinQueryBuilder

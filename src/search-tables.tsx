@@ -14,7 +14,7 @@ import {
   useNavigation,
   open,
 } from "@raycast/api";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { getSchema, filterByPlatform, searchTables } from "./schema/loader";
 import {
   OsqueryTable,
@@ -1006,7 +1006,6 @@ export default function SearchTables() {
             const requiredCols = getRequiredColumns(table);
             const hasRequired = requiredCols.length > 0;
             const tableCategory = getTableCategory(table);
-            const categoryInfo = CATEGORY_INFO[tableCategory];
 
             const buildSelectQuery = () => {
               let query = `SELECT * FROM ${table.name}`;
@@ -1107,9 +1106,6 @@ export default function SearchTables() {
             const relatedTables = findTablesWithColumn(
               column.name,
               filteredTables,
-            );
-            const otherTables = relatedTables.filter(
-              (t) => t.name !== table.name,
             );
 
             return (

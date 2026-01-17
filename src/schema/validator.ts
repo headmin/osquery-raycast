@@ -1,5 +1,4 @@
 import { getSchema, getTableByName } from "./loader";
-import { OsqueryTable } from "./types";
 
 export type IssueSeverity = "error" | "warning" | "info";
 
