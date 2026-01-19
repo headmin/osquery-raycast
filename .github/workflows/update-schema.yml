@@ -1,0 +1,68 @@
+name: Update Osquery Schema
+
+on:
+  # schedule:
+  #   - cron: '0 9 * * 1'  # Every Monday at 9am UTC
+  workflow_dispatch:      # Manual trigger
+
+jobs:
+  update-schema:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get current version
+        id: current
+        run: |
+          VERSION=$(jq -r '.version' src/schema/version.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check for schema updates
+        id: update
+        run: |
+          npx ts-node scripts/update-schema.ts
+          echo "updated=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Get new version
+        if: steps.update.outputs.updated == 'true'
+        id: new
+        run: |
+          VERSION=$(jq -r '.version' src/schema/version.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Run lint and build
+        if: steps.update.outputs.updated == 'true'
+        run: |
+          npm run lint
+          npm run build
+
+      - name: Create Pull Request
+        if: steps.update.outputs.updated == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update osquery schema to ${{ steps.new.outputs.version }}'
+          title: 'Update osquery schema to ${{ steps.new.outputs.version }}'
+          body: |
+            Automated schema update from osquery-site repository.
+
+            ## Changes
+            - Updated schema from ${{ steps.current.outputs.version }} to ${{ steps.new.outputs.version }}
+
+            ## Verification
+            - [ ] Extension builds successfully
+            - [ ] Tables are displayed correctly
+            - [ ] New tables (if any) appear in search
+          branch: update-osquery-schema
+          delete-branch: true

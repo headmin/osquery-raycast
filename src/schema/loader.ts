@@ -1,5 +1,5 @@
 import { OsquerySchema, OsqueryTable, Platform } from "./types";
-import schema from "./schema-5.20.0.json";
+import schema from "./schema-5.21.0.json";
 
 export function getSchema(): OsquerySchema {
   return schema as OsquerySchema;

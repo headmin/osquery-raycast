@@ -81,6 +81,7 @@
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",
     "react": "^19.2.3",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "scripts": {
@@ -88,6 +89,7 @@
     "dev": "ray develop",
     "fix-lint": "ray lint --fix",
     "lint": "ray lint",
-    "publish": "npx @raycast/api@latest publish"
+    "publish": "npx @raycast/api@latest publish",
+    "update-schema": "npx ts-node scripts/update-schema.ts"
   }
 }
