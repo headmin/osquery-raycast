@@ -1,6 +1,6 @@
 {
-  "name": "ray-osquery",
-  "title": "Ray-OSQuery",
+  "name": "osquery",
+  "title": "Osquery",
   "description": "Schema-driven osquery query authoring tool with table discovery and query builder",
   "icon": "osquery.png",
   "author": "henry",
