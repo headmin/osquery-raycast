@@ -16,11 +16,6 @@ import {
   ValidationIssue,
   IssueSeverity,
 } from "./schema/validator";
-import { Platform } from "./schema/types";
-
-interface Preferences {
-  defaultPlatform: Platform;
-}
 
 const SEVERITY_CONFIG: Record<
   IssueSeverity,

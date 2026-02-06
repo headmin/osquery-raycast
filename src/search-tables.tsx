@@ -29,11 +29,6 @@ import {
   getTableCategory,
 } from "./schema/categories";
 
-interface Preferences {
-  defaultPlatform: Platform;
-  fleetUrl?: string;
-}
-
 type SearchMode = "tables" | "columns";
 
 interface FlatColumn {

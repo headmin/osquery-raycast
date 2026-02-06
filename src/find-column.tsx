@@ -13,12 +13,8 @@ import {
 } from "@raycast/api";
 import { useState, useMemo } from "react";
 import { getSchema, filterByPlatform } from "./schema/loader";
-import { OsqueryTable, Platform, PLATFORM_ICONS } from "./schema/types";
+import { OsqueryTable, PLATFORM_ICONS } from "./schema/types";
 import { CATEGORY_INFO, getTableCategory } from "./schema/categories";
-
-interface Preferences {
-  defaultPlatform: Platform;
-}
 
 function getPlatformAccessories(platforms: string[]): List.Item.Accessory[] {
   return platforms

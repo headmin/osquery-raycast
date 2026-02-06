@@ -1,4 +1,4 @@
-## [Initial Release] - 2025-01-20
+## [Initial Release] - {PR_MERGE_DATE}
 
 - Added Search Osquery Tables command with platform filtering
 - Added Find Column Across Tables command for building JOIN queries

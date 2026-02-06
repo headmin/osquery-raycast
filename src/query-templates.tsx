@@ -12,11 +12,7 @@ import {
   QueryTemplate,
   TemplateCategory,
 } from "./data/templates";
-import { Platform, PLATFORM_ICONS } from "./schema/types";
-
-interface Preferences {
-  defaultPlatform: Platform;
-}
+import { PLATFORM_ICONS } from "./schema/types";
 
 function getPlatformAccessories(platforms: string[]): List.Item.Accessory[] {
   return platforms

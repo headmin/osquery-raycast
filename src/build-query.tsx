@@ -14,11 +14,7 @@ import {
 } from "@raycast/api";
 import { useState, useMemo, useEffect } from "react";
 import { getSchema, filterByPlatform } from "./schema/loader";
-import { OsqueryTable, OsqueryColumn, Platform } from "./schema/types";
-
-interface Preferences {
-  defaultPlatform: Platform;
-}
+import { OsqueryTable, OsqueryColumn } from "./schema/types";
 
 interface WhereCondition {
   column: string;
